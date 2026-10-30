@@ -20,10 +20,12 @@ const config = {
     saltRounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
   },
   jwtSecret: required(process.env.TOKEN_SECRET_KEY, "TOKEN_SECRET_KEY"),
+  jwtExpiresIn: process.env.TOKEN_EXPIRES_IN || "7d",
   refreshTokenSecret: required(
     process.env.REFRESHTOKEN_SECRET_KEY,
     "REFRESHTOKEN_SECRET_KEY"
   ),
+  refreshTokenExpiresIn: process.env.REFRESHTOKEN_EXPIRES_IN || "7d",
   frontend_url: process.env.FRONTEND_URL || "http://localhost:3000",
   admin: {
     name: process.env.ADMIN_NAME || "Admin",

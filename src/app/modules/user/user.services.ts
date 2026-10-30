@@ -114,7 +114,7 @@ const loginDB = async (payload: loginType) => {
     jwtPayload,
     config.jwtSecret as string,
     {
-      expiresIn: "7d",
+      expiresIn: config.jwtExpiresIn as any,
     }
   );
 
@@ -122,7 +122,7 @@ const loginDB = async (payload: loginType) => {
     jwtPayload,
     config.refreshTokenSecret as string,
     {
-      expiresIn: "7d",
+      expiresIn: config.refreshTokenExpiresIn as any,
     }
   );
 
