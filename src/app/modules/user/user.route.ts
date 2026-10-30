@@ -14,6 +14,7 @@ router.get("/users/grouped-by-interests", auth("user", "admin"), UserController.
 // Authenticated User Profile Routes
 router.get("/user-profile", auth("user", "admin"), UserController.getMyProfile);
 router.put("/update-profile", auth("user", "admin"), UserController.updateUser);
+router.put("/change-password", auth("user", "admin"), UserController.changePassword);
 
 // Admin User Management Routes
 router.post("/create-admin-user", auth("admin"), UserController.createUserByAdmin);

@@ -19,9 +19,33 @@ const createUserDB = async (payload: IUser) => {
     password: hashedPassword,
   });
 
+  const jwtPayload = {
+    id: result._id.toString(),
+    email: result.email,
+    name: result.name,
+    role: result.role,
+  };
+
+  const token = jwt.sign(jwtPayload, config.jwtSecret as string, {
+    expiresIn: config.jwtExpiresIn as any,
+  });
+
+  const refreshToken = jwt.sign(
+    jwtPayload,
+    config.refreshTokenSecret as string,
+    {
+      expiresIn: config.refreshTokenExpiresIn as any,
+    }
+  );
+
   const userObj = result.toObject();
   delete (userObj as any).password;
-  return userObj;
+  return {
+    ...userObj,
+    id: result._id.toString(),
+    token,
+    refreshToken,
+  };
 };
 
 // Admin list all users with pagination (Uses { createdAt: -1 } index)
@@ -207,6 +231,34 @@ const groupUsersByInterestsDB = async (query: Record<string, any> = {}) => {
   };
 };
 
+// Change Password (Uses built-in { _id: 1 } index)
+const changePasswordDB = async (
+  userId: string,
+  payload: { currentPassword: string; newPassword: string }
+) => {
+  const user = await UserModel.findById(userId).select("+password");
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const isPasswordMatched = await bcrypt.compare(
+    payload.currentPassword,
+    user.password
+  );
+  if (!isPasswordMatched) {
+    throw new Error("Current password does not match");
+  }
+
+  const saltRounds = config.bcrypt.saltRounds || 10;
+  const hashedNewPassword = await bcrypt.hash(payload.newPassword, saltRounds);
+
+  await UserModel.findByIdAndUpdate(userId, {
+    password: hashedNewPassword,
+  });
+
+  return { updated: true };
+};
+
 export const UserServices = {
   createUserDB,
   fetchUserDB,
@@ -215,5 +267,6 @@ export const UserServices = {
   deleteUserDB,
   loginDB,
   groupUsersByInterestsDB,
+  changePasswordDB,
 };
 

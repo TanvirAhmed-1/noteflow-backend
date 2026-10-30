@@ -1,7 +1,12 @@
 import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import { UserServices } from "./user.services";
-import { createUserSchema, loginSchema, updateUserSchema } from "./user.validation";
+import {
+  changePasswordSchema,
+  createUserSchema,
+  loginSchema,
+  updateUserSchema,
+} from "./user.validation";
 
 // Register User (Public)
 const createdUser = catchAsync(async (req, res) => {
@@ -131,6 +136,21 @@ const groupUsersByInterests = catchAsync(async (req, res) => {
   });
 });
 
+// Change Password (Authenticated User / Admin)
+const changePassword = catchAsync(async (req, res) => {
+  const validatedData = changePasswordSchema.parse(req.body);
+  const result = await UserServices.changePasswordDB(
+    req.user!.id,
+    validatedData
+  );
+  res.status(httpStatus.OK).json({
+    success: true,
+    statusCode: 200,
+    message: "Password changed successfully",
+    result,
+  });
+});
+
 export const UserController = {
   createdUser,
   createUserByAdmin,
@@ -141,5 +161,6 @@ export const UserController = {
   deleteUser,
   loginUser,
   groupUsersByInterests,
+  changePassword,
 };
 
