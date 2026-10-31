@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
