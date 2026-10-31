@@ -12,6 +12,16 @@ const postSchema: Schema<IPost> = new Schema(
       type: String,
       required: true,
     },
+    interest: {
+      type: String,
+      trim: true,
+      default: "General",
+    },
+    type: {
+      type: String,
+      enum: ["personal", "community"],
+      default: "community",
+    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -21,13 +31,13 @@ const postSchema: Schema<IPost> = new Schema(
   { timestamps: true }
 );
 
-// ✅ Required Indexes (defined via schema.index for visibility & efficiency)
 // 1. Compound index on { userId: 1, createdAt: -1 }
-//    Supports Scenario 2 ($lookup stage on foreignField: "userId" sorted by createdAt: -1)
 postSchema.index({ userId: 1, createdAt: -1 });
 
-// 2. Index on { createdAt: -1 } for public paginated list of all posts
+// 2. Compound index on { interest: 1, createdAt: -1 } for interest-based filtering
+postSchema.index({ interest: 1, createdAt: -1 });
+
+// 3. Index on { createdAt: -1 } for paginated list of all posts
 postSchema.index({ createdAt: -1 });
 
 export const PostModel = mongoose.model<IPost>("Post", postSchema);
-

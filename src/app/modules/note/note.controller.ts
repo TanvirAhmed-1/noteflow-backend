@@ -19,9 +19,9 @@ const createNote = catchAsync(async (req, res) => {
   });
 });
 
-// Fetch Notes (Paginated)
-// - Regular user: always sees only their own notes
-// - Admin: sees everyone's notes by default, or can filter by ?userId=... or ?scope=own
+// Fetch Notes (Paginated & Filtered)
+// - Admin: sees everyone's notes by default, or can filter by ?userId=..., ?scope=own, ?type=personal|community
+// - Regular user: sees their own notes by default, or community notes when ?type=community
 const fetchNotes = catchAsync(async (req, res) => {
   const user = req.user!;
   let filterUserId: string | undefined;
@@ -33,7 +33,11 @@ const fetchNotes = catchAsync(async (req, res) => {
       filterUserId = req.query.userId.trim();
     }
   } else {
-    filterUserId = user.id;
+    if (req.query.type === "community" && req.query.scope !== "own") {
+      filterUserId = undefined;
+    } else {
+      filterUserId = user.id;
+    }
   }
 
   const result = await NoteServices.fetchNotesDB(req.query, filterUserId);

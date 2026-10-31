@@ -8,8 +8,8 @@ const router = Router();
 router.post("/register", UserController.createdUser);
 router.post("/login", UserController.loginUser);
 
-// Scenario 1: Group Users by Interests (Aggregation Pipeline)
-router.get("/users/grouped-by-interests", auth("user", "admin"), UserController.groupUsersByInterests);
+// Scenario 1: Group Users by Interests (Admin Only Aggregation Pipeline)
+router.get("/users/grouped-by-interests", auth("admin"), UserController.groupUsersByInterests);
 
 // Authenticated User Profile Routes
 router.get("/user-profile", auth("user", "admin"), UserController.getMyProfile);
