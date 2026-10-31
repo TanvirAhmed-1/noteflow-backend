@@ -26,7 +26,11 @@ const config = {
     "REFRESHTOKEN_SECRET_KEY"
   ),
   refreshTokenExpiresIn: process.env.REFRESHTOKEN_EXPIRES_IN || "7d",
-  frontend_url: process.env.FRONTEND_URL || "http://localhost:3000",
+  // CORS Allowed Origins (support comma-separated origins from FRONTEND_URL env, default http://localhost:3000)
+  frontend_url: (process.env.FRONTEND_URL || "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   admin: {
     name: process.env.ADMIN_NAME || "Admin",
     email: required(process.env.ADMIN_EMAIL, "ADMIN_EMAIL"),

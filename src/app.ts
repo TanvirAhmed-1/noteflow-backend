@@ -8,16 +8,22 @@ import config from "./app/config";
 
 const app = express();
 
-// ✅ Correct CORS configuration
+const allowedOrigins = [
+  ...config.frontend_url,
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
+
 app.use(
   cors({
-    origin: [
-      config.frontend_url,
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "http://localhost:5173",
-      "http://localhost:5000",
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Permissive in dev/interview to avoid blocking any frontend domain
+      }
+    },
     credentials: true,
   })
 );

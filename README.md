@@ -4,6 +4,15 @@ This is the backend service for the Secure Note-Taking & Community Platform, bui
 
 ---
 
+## 🌐 Live Deployed Server
+
+- **Live URL**: [https://noteflow-backend-5l9o.onrender.com/](https://noteflow-backend-5l9o.onrender.com/)
+- **API Base**: [https://noteflow-backend-5l9o.onrender.com/api](https://noteflow-backend-5l9o.onrender.com/api)
+- **Health Check**: `GET https://noteflow-backend-5l9o.onrender.com/` → `Server running successfully!`
+- **Hosting Platform**: Render Cloud Web Service (Free Tier)
+
+---
+
 ## 🔐 Roles & Permissions
 
 - **User**:
