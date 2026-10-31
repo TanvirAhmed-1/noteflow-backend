@@ -1,0 +1,809 @@
+{
+  "info": {
+    "_postman_id": "8c9ad5e0-417d-44eb-8757-noteflow-api-collection",
+    "name": "NoteFlow Backend API Collection",
+    "description": "Production-ready Postman collection with complete sample payloads, query parameters, authentication tokens, and MongoDB aggregation scenarios (Scenario 1 & Scenario 2).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "noteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "postId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Regular User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tanvir Ahmed\",\n  \"email\": \"tanvir.user@example.com\",\n  \"password\": \"User@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["register"]
+            },
+            "description": "Registers a new user and returns JWT accessToken with role: 'user'."
+          }
+        },
+        {
+          "name": "Login Regular User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.result && res.result.accessToken) {",
+                  "    pm.collectionVariables.set('userToken', res.result.accessToken);",
+                  "    if (res.result.user && res.result.user._id) {",
+                  "        pm.collectionVariables.set('userId', res.result.user._id);",
+                  "    }",
+                  "    console.log('Saved userToken successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tanvir.user@example.com\",\n  \"password\": \"User@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "description": "Logs in user and automatically populates {{userToken}} and {{userId}} variables."
+          }
+        },
+        {
+          "name": "Login Seeded Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.result && res.result.accessToken) {",
+                  "    pm.collectionVariables.set('adminToken', res.result.accessToken);",
+                  "    console.log('Saved adminToken successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@noteflow.com\",\n  \"password\": \"Admin@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "description": "Logs in default seeded admin and automatically populates {{adminToken}}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Interview Scenarios (MongoDB Aggregations)",
+      "item": [
+        {
+          "name": "Scenario 1: Group Users by Interests (Single aggregate pipeline)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/grouped-by-interests?page=1&limit=10&minUsers=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "grouped-by-interests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "minUsers",
+                  "value": "1",
+                  "description": "Filters interest groups having at least X members"
+                },
+                {
+                  "key": "searchInterest",
+                  "value": "Coding",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Executes Scenario 1 using a single UserModel.aggregate() pipeline with $match, $unwind, $group, $sort, and $facet for pagination & summary totals."
+          }
+        },
+        {
+          "name": "Scenario 2: Retrieve User Posts with $lookup Pipeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/user/{{userId}}?type=all&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "user", "{{userId}}"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "all",
+                  "description": "Options: 'all', 'community', 'personal'"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Executes Scenario 2: retrieves user posts utilizing a MongoDB $lookup aggregation stage to join user details and return posts array."
+          }
+        },
+        {
+          "name": "Scenario 2 (Alternate Endpoint): /users/:userId/posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/posts?type=community",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "posts"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "community"
+                }
+              ]
+            },
+            "description": "Alternate RESTful URL pattern for retrieving user posts using the $lookup stage."
+          }
+        },
+        {
+          "name": "Admin Unified Feed ($unionWith + $lookup)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/posts/admin-table?page=1&limit=10&type=all&interest=Coding",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "admin-table"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "type",
+                  "value": "all",
+                  "description": "'all', 'community' (Public), or 'personal' (Private)"
+                },
+                {
+                  "key": "interest",
+                  "value": "Coding"
+                },
+                {
+                  "key": "userName",
+                  "value": "Tanvir",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Unified admin table pipeline combining posts and notes collections via $unionWith and resolving author data via $lookup."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Notes (Personal / Private)",
+      "item": [
+        {
+          "name": "Create Personal Note",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.result && res.result._id) {",
+                  "    pm.collectionVariables.set('noteId', res.result._id);",
+                  "    console.log('Saved noteId successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Architecture Decisions for NoteFlow\",\n  \"content\": \"<p>Documenting our caching layer and MongoDB indexing strategy for high throughput.</p>\",\n  \"type\": \"personal\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notes",
+              "host": ["{{baseUrl}}"],
+              "path": ["notes"]
+            },
+            "description": "Creates a private personal note for the authenticated user."
+          }
+        },
+        {
+          "name": "Fetch My Notes (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notes?page=1&limit=10&searchTerm=Architecture",
+              "host": ["{{baseUrl}}"],
+              "path": ["notes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "Architecture"
+                }
+              ]
+            },
+            "description": "Fetches authenticated user's private notes utilizing compound index { userId: 1, createdAt: -1 }."
+          }
+        },
+        {
+          "name": "Fetch Admin All Notes (Admin Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notes/all?page=1&limit=20&type=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notes", "all"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "all"
+                }
+              ]
+            },
+            "description": "Allows Admin to inspect all notes created across the system."
+          }
+        },
+        {
+          "name": "Get Single Note by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notes/{{noteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notes", "{{noteId}}"]
+            },
+            "description": "Fetches single note by ID. Returns 404 if not found."
+          }
+        },
+        {
+          "name": "Update Note",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Architecture Decisions for NoteFlow (Updated)\",\n  \"content\": \"<p>Updated implementation: single aggregate pipeline for Scenario 1 and $lookup for Scenario 2.</p>\",\n  \"type\": \"personal\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notes/{{noteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notes", "{{noteId}}"]
+            },
+            "description": "Updates note title, content, or type. Validates note existence prior to updating."
+          }
+        },
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notes/{{noteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notes", "{{noteId}}"]
+            },
+            "description": "Deletes note by ID. Validates note existence prior to deletion."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Community Posts (Public)",
+      "item": [
+        {
+          "name": "Publish Community Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.result && res.result._id) {",
+                  "    pm.collectionVariables.set('postId', res.result._id);",
+                  "    console.log('Saved postId successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Scalable Microservices with Node.js & MongoDB\",\n  \"content\": \"<p>Exploring high-performance aggregation pipelines and compound indexing in Mongoose.</p>\",\n  \"interest\": \"Coding\",\n  \"type\": \"community\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"]
+            },
+            "description": "Publishes a public community post associated with an interest."
+          }
+        },
+        {
+          "name": "Fetch Community Posts (Filtered by Interest)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts?page=1&limit=10&interest=Coding&type=community",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "interest",
+                  "value": "Coding"
+                },
+                {
+                  "key": "type",
+                  "value": "community"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "Microservices",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Public endpoint fetching community posts. Uses { interest: 1, createdAt: -1 } index."
+          }
+        },
+        {
+          "name": "Get Single Post by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "{{postId}}"]
+            },
+            "description": "Fetches a post with author population. Returns 404 if not found."
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Scalable Microservices with Node.js (Revised)\",\n  \"content\": \"<p>Revised insights on index coverage and performance optimizations.</p>\",\n  \"interest\": \"Coding\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "{{postId}}"]
+            },
+            "description": "Updates a post. Validates post existence prior to updating."
+          }
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["posts", "{{postId}}"]
+            },
+            "description": "Deletes a post by ID. Validates existence prior to deletion."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. User Profile & Password",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user-profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-profile"]
+            },
+            "description": "Returns authenticated user profile details."
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tanvir Ahmed (Senior)\",\n  \"interests\": [\"Coding\", \"AI & ML\", \"System Architecture\", \"Database\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/update-profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["update-profile"]
+            },
+            "description": "Updates profile details including interests array."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"User@12345\",\n  \"newPassword\": \"User@54321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["change-password"]
+            },
+            "description": "Changes user password after validating current password hash with bcrypt."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Admin User Management",
+      "item": [
+        {
+          "name": "Admin Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Community Member Two\",\n  \"email\": \"member2@example.com\",\n  \"password\": \"Member@12345\",\n  \"role\": \"user\",\n  \"interests\": [\"Photography\", \"Travel\", \"Coding\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/create-admin-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["create-admin-user"]
+            },
+            "description": "Admin endpoint to create user with explicit role."
+          }
+        },
+        {
+          "name": "Admin Fetch All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/all-users?page=1&limit=20&searchTerm=Member",
+              "host": ["{{baseUrl}}"],
+              "path": ["all-users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "searchTerm",
+                  "value": "Member"
+                }
+              ]
+            },
+            "description": "Admin endpoint to list all platform users with pagination & search."
+          }
+        },
+        {
+          "name": "Admin Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Admin endpoint to delete user by ID. Validates existence."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Interest Topics",
+      "item": [
+        {
+          "name": "Fetch All Interests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/interests?page=1&limit=20&status=published",
+              "host": ["{{baseUrl}}"],
+              "path": ["interests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "published"
+                }
+              ]
+            },
+            "description": "Fetches active interest topics for post creation and filtering."
+          }
+        },
+        {
+          "name": "Admin Create Interest",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cybersecurity\",\n  \"description\": \"Network security, penetration testing, and zero trust architecture\",\n  \"color\": \"bg-red-600\",\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/interests",
+              "host": ["{{baseUrl}}"],
+              "path": ["interests"]
+            },
+            "description": "Admin endpoint to create a new interest topic."
+          }
+        }
+      ]
+    }
+  ]
+}
+

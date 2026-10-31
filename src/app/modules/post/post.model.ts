@@ -13,8 +13,7 @@ const postSchema: Schema<IPost> = new Schema(
       required: true,
     },
     interest: {
-      type: String,
-      trim: true,
+      type: Schema.Types.Mixed,
       default: "General",
     },
     type: {

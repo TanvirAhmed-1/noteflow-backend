@@ -1,4 +1,6 @@
+import httpStatus from "http-status";
 import mongoose from "mongoose";
+import AppError from "../../errors/AppError";
 import { PostModel } from "./post.model";
 import { UserModel } from "../user/user.model";
 import { IPost } from "./post.interface";
@@ -6,6 +8,20 @@ import { IPost } from "./post.interface";
 // Create a post
 const createPostDB = async (payload: IPost) => {
   const result = await PostModel.create(payload);
+
+  // Automatically sync user's active interests when publishing a community post
+  if (payload.interest && payload.userId) {
+    const interestItems = (
+      Array.isArray(payload.interest) ? payload.interest : [payload.interest]
+    ).filter(Boolean);
+
+    if (interestItems.length > 0) {
+      await UserModel.findByIdAndUpdate(payload.userId, {
+        $addToSet: { interests: { $each: interestItems } },
+      });
+    }
+  }
+
   return result.populate("userId", "name email role interests");
 };
 
@@ -49,8 +65,9 @@ const fetchPostsDB = async (query: Record<string, any> = {}) => {
     String(query.interest).trim() !== "" &&
     String(query.interest).toLowerCase() !== "all"
   ) {
+    const interestTerm = String(query.interest).trim();
     const interestRegex = new RegExp(
-      `^${String(query.interest).trim()}$`,
+      `(^|,\\s*)${interestTerm}(,|$)|^${interestTerm}$`,
       "i"
     );
     const usersWithInterest = await UserModel.find({
@@ -387,13 +404,18 @@ const fetchSinglePostDB = async (postId: string) => {
     "name email role interests"
   );
   if (!post) {
-    throw new Error("Post not found");
+    throw new AppError(httpStatus.NOT_FOUND, "Post not found");
   }
   return post;
 };
 
 // Update post by ID
 const updatePostDB = async (payload: Partial<IPost>, postId: string) => {
+  const isExists = await PostModel.findById(postId);
+  if (!isExists) {
+    throw new AppError(httpStatus.NOT_FOUND, "Post not found");
+  }
+
   const result = await PostModel.findByIdAndUpdate(postId, payload, {
     new: true,
     runValidators: true,
@@ -403,6 +425,11 @@ const updatePostDB = async (payload: Partial<IPost>, postId: string) => {
 
 // Delete post by ID
 const deletePostDB = async (postId: string) => {
+  const isExists = await PostModel.findById(postId);
+  if (!isExists) {
+    throw new AppError(httpStatus.NOT_FOUND, "Post not found");
+  }
+
   const result = await PostModel.findByIdAndDelete(postId);
   return result;
 };

@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
+import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
 import config from "../../config";
+import AppError from "../../errors/AppError";
 import { UserModel } from "./user.model";
 import { IUser, loginType } from "./user.interface";
 
@@ -12,6 +14,7 @@ const createUserDB = async (payload: IUser) => {
   }
 
   const saltRounds = config.bcrypt.saltRounds || 10;
+
   const hashedPassword = await bcrypt.hash(payload.password, saltRounds);
   const result = await UserModel.create({
     ...payload,
@@ -48,7 +51,7 @@ const createUserDB = async (payload: IUser) => {
   };
 };
 
-// Admin list all users with pagination, search, role & active filter (Uses { createdAt: -1 } index)
+// Admin list all users with pagination, search, role & activc
 const fetchUserDB = async (query: Record<string, any> = {}) => {
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.max(1, Number(query.limit) || 20);
@@ -103,7 +106,7 @@ const fetchSingleUserDB = async (userId: string) => {
 const updateUserDB = async (payload: Partial<IUser>, userId: string) => {
   const existingUser = await UserModel.findById(userId);
   if (!existingUser) {
-    throw new Error("User not found");
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
 
   const updateData: Partial<IUser> = { ...payload };
@@ -123,7 +126,7 @@ const updateUserDB = async (payload: Partial<IUser>, userId: string) => {
 const deleteUserDB = async (userId: string) => {
   const existingUser = await UserModel.findById(userId);
   if (!existingUser) {
-    throw new Error("User not found");
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
 
   const result = await UserModel.findByIdAndDelete(userId);

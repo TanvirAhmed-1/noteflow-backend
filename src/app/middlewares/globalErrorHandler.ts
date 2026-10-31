@@ -48,7 +48,6 @@ const globalErrorHandler = (
     success: false,
     statusCode,
     message,
-    stack: config.env === "development" ? err.stack : undefined,
   });
 };
 

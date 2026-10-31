@@ -1,3 +1,5 @@
+import httpStatus from "http-status";
+import AppError from "../../errors/AppError";
 import { NoteModel } from "./note.model";
 import { UserModel } from "../user/user.model";
 import { INote } from "./note.interface";
@@ -102,13 +104,18 @@ const fetchSingleNoteDB = async (noteId: string) => {
     "name email role"
   );
   if (!note) {
-    throw new Error("Note not found");
+    throw new AppError(httpStatus.NOT_FOUND, "Note not found");
   }
   return note;
 };
 
 // Update note by ID (Uses built-in { _id: 1 } index)
 const updateNoteDB = async (payload: Partial<INote>, noteId: string) => {
+  const isExists = await NoteModel.findById(noteId);
+  if (!isExists) {
+    throw new AppError(httpStatus.NOT_FOUND, "Note not found");
+  }
+
   const result = await NoteModel.findByIdAndUpdate(noteId, payload, {
     new: true,
     runValidators: true,
@@ -118,6 +125,11 @@ const updateNoteDB = async (payload: Partial<INote>, noteId: string) => {
 
 // Delete note by ID (Uses built-in { _id: 1 } index)
 const deleteNoteDB = async (noteId: string) => {
+  const isExists = await NoteModel.findById(noteId);
+  if (!isExists) {
+    throw new AppError(httpStatus.NOT_FOUND, "Note not found");
+  }
+
   const result = await NoteModel.findByIdAndDelete(noteId);
   return result;
 };

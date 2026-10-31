@@ -6,7 +6,7 @@ export type IUser = {
   password: string;
   role: TUserRole;
   isActive?: boolean;
-  interests: string[];
+  interests?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 };

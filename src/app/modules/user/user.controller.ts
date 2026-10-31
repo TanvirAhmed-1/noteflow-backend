@@ -11,7 +11,6 @@ import {
 // Register User (Public)
 const createdUser = catchAsync(async (req, res) => {
   const validatedData = createUserSchema.parse(req.body);
-  // Regular registration always creates "user" unless first/explicitly allowed, or if role is provided
   const result = await UserServices.createUserDB(validatedData);
   res.status(httpStatus.CREATED).json({
     success: true,
