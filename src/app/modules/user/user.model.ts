@@ -24,6 +24,10 @@ const userSchema: Schema<IUser> = new Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     interests: {
       type: [String],
       default: [],

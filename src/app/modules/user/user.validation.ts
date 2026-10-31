@@ -9,6 +9,7 @@ export const createUserSchema = z.object({
     .string()
     .min(6, "Password must be at least 6 characters"),
   role: RoleEnum.optional().default("user"),
+  isActive: z.boolean().optional().default(true),
   interests: z.array(z.string().trim()).optional().default([]),
 });
 

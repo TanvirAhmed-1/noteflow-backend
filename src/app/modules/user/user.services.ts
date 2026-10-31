@@ -48,18 +48,35 @@ const createUserDB = async (payload: IUser) => {
   };
 };
 
-// Admin list all users with pagination (Uses { createdAt: -1 } index)
+// Admin list all users with pagination, search, role & active filter (Uses { createdAt: -1 } index)
 const fetchUserDB = async (query: Record<string, any> = {}) => {
   const page = Math.max(1, Number(query.page) || 1);
-  const limit = Math.max(1, Number(query.limit) || 10);
+  const limit = Math.max(1, Number(query.limit) || 20);
   const skip = (page - 1) * limit;
 
+  const filter: Record<string, any> = {};
+
+  if (query.searchTerm && String(query.searchTerm).trim() !== "") {
+    const regex = new RegExp(String(query.searchTerm).trim(), "i");
+    filter.$or = [{ name: regex }, { email: regex }];
+  }
+
+  if (query.role && (query.role === "admin" || query.role === "user")) {
+    filter.role = query.role;
+  }
+
+  if (query.isActive === "true") {
+    filter.isActive = { $ne: false };
+  } else if (query.isActive === "false") {
+    filter.isActive = false;
+  }
+
   const [data, total] = await Promise.all([
-    UserModel.find({})
+    UserModel.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
-    UserModel.countDocuments({}),
+    UserModel.countDocuments(filter),
   ]);
 
   return {
@@ -67,7 +84,7 @@ const fetchUserDB = async (query: Record<string, any> = {}) => {
       page,
       limit,
       total,
-      totalPage: Math.ceil(total / limit),
+      totalPage: Math.max(1, Math.ceil(total / limit)),
     },
     data,
   };
